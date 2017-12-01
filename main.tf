@@ -1,13 +1,43 @@
-provider "docker" {
-  host = "tcp://127.0.0.1:2376/"
+provider "aws" {
+  region  = "ap-southeast-1"
+  version = "~> 1.2.0"
 }
 
-# Create a container
-resource "docker_container" "foo" {
-  image = "${docker_image.ubuntu.latest}"
-  name  = "foo"
+data "aws_iam_policy_document" "example" {
+  statement {
+    sid = "1"
+
+    actions = [
+      "s3:ListAllMyBuckets",
+      "s3:GetBucketLocation",
+    ]
+
+    resources = [
+      "arn:aws:s3:::*",
+    ]
+  }
+
+  statement {
+    actions = [
+      "s3:ListBucket",
+    ]
+  }
+
+  statement {
+    actions = [
+      "s3:*",
+    ]
+
+    resources = []
+  }
 }
 
-resource "docker_image" "ubuntu" {
-  name = "ubuntu:latest"
+resource "aws_iam_policy" "example" {
+  name   = "${var.name}"
+  path   = "/"
+  policy = "${data.aws_iam_policy_document.example.json}"
+
 }
+
+
+variable "name"{}
